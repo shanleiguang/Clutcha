@@ -3,10 +3,10 @@
 An agent on your own Mac that you can reach from your phone — through a mailbox
 that cannot read the mail.
 
-Clutcha is two pieces: a small web app that runs on the Mac (this repository's
-[`bridge/`](bridge/)), and an iOS app that talks to it. They do not talk to each
-other over the network. They write each other encrypted letters through an email
-mailbox that both already have, and that mailbox only ever sees armor.
+Clutcha is two pieces: a small web app that runs on the Mac — the bridge, and
+what this repository is — and an iOS app that talks to it. They do not talk to
+each other over the network. They write each other encrypted letters through an
+email mailbox that both already have, and that mailbox only ever sees armor.
 
 ```
   iOS app ──letter (VM MESSAGE armor)──▶ mailbox ──▶ bridge ──▶ pi session
@@ -18,12 +18,18 @@ rent, and nothing on the internet that knows Clutcha exists. The cost is latency
 one round trip is one mail delivery, usually under a minute. That is the whole
 trade, and it is deliberate.
 
-## What is here
+## What is here — and what is not
 
-| Path | What it is |
-|---|---|
-| [`bridge/`](bridge/) | The web app that runs on the Mac. Python 3, no build step, no dependencies beyond `cryptography` and `qrcode`. |
-| `app/` | The iOS app. **Not published yet.** |
+This repository holds the **bridge**: the half that runs on your Mac. Python 3,
+no build step, no dependencies beyond `cryptography` and `qrcode`.
+
+The other half is the **iOS app**, which is the client for the bridge's Remote
+mode. It is distributed through the App Store and its source is not public, so
+there is nothing here about it beyond what the protocol needs: the pairing
+payload, the letter format, and the commands a paired phone may send.
+
+That split is deliberate. The bridge is the part you have to trust with a mailbox
+password and a `pi` session on your own machine, so it is the part you can read.
 
 ## What the bridge does
 
@@ -45,6 +51,8 @@ and empty means "whatever `pi` defaults to". A typo surfaces as the model
 server's own error, verbatim.
 
 ## Quick start
+
+The app is what you pair with, but nothing below depends on it.
 
 Requirements: macOS, Python 3.9+, [`pi`](https://github.com/badlogic/pi-mono)
 installed and able to answer on its own, and a mailbox that allows POP3 or IMAP
@@ -112,9 +120,11 @@ mailbox). Anything without the prefix is a message to the agent, as before.
 
 ## Status
 
-The bridge works and is what this repository ships. The iOS app is not published
-yet; until it is, the bridge is useful on its own — it is a readable
-implementation of the protocol, and its Setup page can send itself test letters.
+The bridge works and is what this repository ships: install it, point it at a
+mailbox and a `pi` session, and it will answer letters. The iOS app is the
+comfortable way to use it; without the app the bridge is still a complete
+implementation of the protocol, and its Setup page can send itself test letters
+to prove the mailbox works.
 
 ## License
 
