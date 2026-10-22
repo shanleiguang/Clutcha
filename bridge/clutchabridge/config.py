@@ -73,6 +73,9 @@ POLL_MAX = 3600
 DEFAULT_POLL_SECONDS = 180
 
 CONFIG: dict = {}
+# Set by load_config() when there was no config.json to read: a fresh install,
+# which owes nothing to the conversation that may already sit on this machine.
+FIRST_RUN = False
 
 
 def blank_config() -> dict:
@@ -321,7 +324,8 @@ def migrate(raw: dict) -> tuple[dict, bool]:
 
 def load_config() -> dict:
     """Load config.json, migrating older files (with a backup) when needed."""
-    global CONFIG
+    global CONFIG, FIRST_RUN
+    FIRST_RUN = not os.path.exists(CONFIG_PATH)
     raw: dict = {}
     try:
         with open(CONFIG_PATH, "r", encoding="utf-8") as handle:

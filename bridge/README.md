@@ -125,6 +125,13 @@ what their sampling parameters are — that is `pi`'s configuration:
 Leave it empty and `pi`'s default is used. A typo is not caught here: run
 "Test session" and the model server's own error comes back, verbatim.
 
+**A fresh install starts clean.** On the very first run the bridge records the
+mailbox as it is and answers none of it, and it archives any `pi` session that
+already exists for the chosen id — a new deployment owes nothing to a
+conversation it never had. The same archive happens if the previous process was
+killed mid-turn, because an unanswered question left in a session is what makes
+the next reply answer the wrong letter.
+
 **Three knobs worth setting:**
 
 | Field | Why |

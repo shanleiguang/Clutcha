@@ -28,6 +28,9 @@ from .state import STATE
 REPLY_HEADER = "X-Clutcha-Reply"
 LEGACY_REPLY_HEADERS = ("X-VMessager-Reply",)
 CURSOR_PATH = os.path.join(cfg.STATE_DIR, ".pop3_cursor.json")
+# IMAP has a server-side seen flag, so it needs its own "I have looked at this
+# mailbox before" marker rather than a UID list.
+IMAP_MARK = os.path.join(cfg.STATE_DIR, ".imap_seen")
 TIMEOUT = 30
 
 
@@ -146,11 +149,37 @@ def fetch_new_messages() -> list[dict]:
     return _fetch_pop3(inbox)
 
 
+def _first_look_imap(client) -> bool:
+    """Mark everything already in the mailbox as seen, without answering it.
+
+    A new install knows nothing about the past, and the past in an IMAP mailbox
+    is UNSEEN mail. Answering it would mean replying to a conversation the user
+    had with a different bridge, or with no bridge at all.
+    """
+    if os.path.exists(IMAP_MARK):
+        return False
+    status, data = client.search(None, "UNSEEN")
+    if status != "OK":
+        return False
+    uids = data[0].split()
+    for uid in uids:
+        client.store(uid, "+FLAGS", "\\Seen")
+    try:
+        with open(IMAP_MARK, "w", encoding="utf-8") as handle:
+            handle.write("seen\n")
+    except Exception:
+        pass
+    STATE.add("poll", f"first run: {len(uids)} old message(s) marked seen, none answered")
+    return True
+
+
 def _fetch_imap(inbox: dict) -> list[dict]:
     client = imaplib.IMAP4_SSL(inbox["host"], int(inbox["port"]), timeout=TIMEOUT)
     try:
         client.login(inbox["username"], inbox["token"])
         client.select("INBOX")
+        if _first_look_imap(client):
+            return []
         status, data = client.search(None, "UNSEEN")
         if status != "OK":
             return []
@@ -181,6 +210,22 @@ def _fetch_pop3(inbox: dict) -> list[dict]:
         step("login", lambda: (client.user(inbox["username"]), client.pass_(inbox["token"])))
         response, lines, _ = step("uidl", client.uidl)
         if not response.startswith(b"+OK"):
+            return []
+
+        if not os.path.exists(CURSOR_PATH):
+            # Same rule for POP3, which has no seen flag to rely on: everything
+            # in the mailbox predates this bridge, so record it and answer none
+            # of it. From here on the cursor is the record of what arrived.
+            everything = [
+                line.decode().split()[1]
+                for line in lines
+                if len(line.decode().split()) == 2
+            ]
+            _save_cursor(set(everything))
+            STATE.add(
+                "poll",
+                f"first run: {len(everything)} old message(s) recorded, none answered",
+            )
             return []
 
         done = load_cursor()

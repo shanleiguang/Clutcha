@@ -28,6 +28,12 @@ from .state import STATE
 
 PLACEHOLDERS = ("sessionId", "message", "systemPrompt", "cwd")
 
+# Written before pi runs, removed when the answer comes back. If it is still
+# there at start-up, the previous process died mid-turn and the session holds a
+# question that was never answered — pi would fold it into the next reply, which
+# is how a "你好" ends up answered with a disk report.
+TURN_MARK = os.path.join(cfg.STATE_DIR, ".turn_in_flight")
+
 THINKING_LEVELS = ("", "off", "minimal", "low", "medium", "high", "xhigh", "max")
 
 # The bridge deliberately sets almost nothing: the session is the user's, made
@@ -232,22 +238,45 @@ def invoke(argv: list[str], session: dict, stdin_text: str | None = None) -> str
     return result.stdout.strip()
 
 
+def begin_turn() -> None:
+    try:
+        with open(TURN_MARK, "w", encoding="utf-8") as handle:
+            handle.write(time.strftime("%Y-%m-%dT%H:%M:%S"))
+    except Exception:
+        pass
+
+
+def end_turn() -> None:
+    try:
+        os.unlink(TURN_MARK)
+    except Exception:
+        pass
+
+
+def turn_was_interrupted() -> bool:
+    return os.path.exists(TURN_MARK)
+
+
 def reply(text: str) -> str:
     """One message in, one reply out. Never raises: the caller still replies."""
     session = cfg.session()
     started = time.time()
+    begin_turn()
     try:
         argv = render_command(session, text)
         output = invoke(argv, session)
     except subprocess.TimeoutExpired:
+        end_turn()
         STATE.bump("errors")
         STATE.add("error", f"runtime timed out after {session.get('timeoutSeconds')}s", "error")
         return session.get("fallback") or ""
     except Exception as error:
+        end_turn()
         STATE.bump("errors")
         STATE.add("error", f"runtime failed: {error}", "error")
         return session.get("fallback") or ""
 
+    end_turn()
     elapsed = (time.time() - started) * 1000
     STATE.last_reply_ms = round(elapsed, 1)
     if not output:

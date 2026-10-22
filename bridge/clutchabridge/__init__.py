@@ -5,7 +5,7 @@ encrypts the answer and sends it back. Conversation state, tools and memory
 belong to the runtime (pi, or any CLI command).
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 APP_NAME = "Clutcha Bridge"
 WIRE_NAME = "vmessager"  # KDF context strings — changing these breaks the app.

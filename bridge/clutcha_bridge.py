@@ -73,6 +73,37 @@ def ensure_agent_folder() -> None:
         print(f"could not create {folder}: {error}")
 
 
+def prepare_session() -> None:
+    """Start a conversation that owes nothing to an older one.
+
+    Two ways an old pi session poisons a new bridge: it is a fresh install that
+    happens to pick the same session id and folder, or the previous process was
+    killed mid-turn and left a question in the session that was never answered —
+    which the next reply then answers instead of the letter that just arrived.
+    Either way the old session is renamed, not deleted.
+    """
+    from clutchabridge import agent, config
+    from clutchabridge.state import STATE
+
+    session = config.session()
+    reasons = []
+    if config.FIRST_RUN and agent.session_files(session):
+        reasons.append("fresh install")
+    if agent.turn_was_interrupted():
+        reasons.append("previous turn was interrupted")
+        agent.end_turn()
+    if not reasons:
+        return
+
+    result = agent.archive_session(session)
+    if result.get("ok"):
+        reason = " and ".join(reasons)
+        STATE.add("service", f"pi session archived ({reason}) — starting clean")
+        print(f"  pi session archived ({reason})")
+    else:
+        STATE.add("service", f"could not archive the old pi session: {result.get('error')}", "warn")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Clutcha Bridge")
     parser.add_argument("--port", type=int, default=0, help="override the port from config.json")
@@ -102,6 +133,7 @@ def main() -> None:
     crypto.ensure_identities()
     crypto.refresh_conversation_key()
     ensure_agent_folder()
+    prepare_session()
 
     if not config.is_configured():
         STATE.add("service", "bridge starting (mailbox not configured yet — see the Setup tab)", "warn")
