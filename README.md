@@ -1,19 +1,21 @@
 # Clutcha
 
+**English** · [中文](README.zh.md)
+
 Your own agent, on your own computer, reachable from your phone — through a
 mailbox that cannot read the mail.
 
 Clutcha is three parts. This repository is the middle one.
 
 ```
-   Clutcha App  ──letter──▶  mailbox  ──▶  Clutcha Bridge  ──▶  pi session
+   锦囊AI App  ──letter──▶  mailbox  ──▶  Clutcha Bridge  ──▶  pi session
     (the phone)              (dumb)       (this repository)    (your model)
                 ◀──letter──           ◀──
 ```
 
 | Piece | What it is | Where it comes from |
 |---|---|---|
-| **Clutcha App** | The phone: pairing, the conversation, the ciphertext when you want to see it. | App Store. Source not public. |
+| **锦囊AI App** | The phone: pairing, the conversation, the ciphertext when you want to see it. | App Store. Source not public. |
 | **Clutcha Bridge** | A small web app on the computer that owns the mailbox. It opens the letters, asks the agent, seals the answer, and shows you what happened. | **This repository.** |
 | **pi session** | The agent itself: a `pi` conversation on that same computer, with the model, working directory and tools you chose there. | Your `pi` install. |
 
@@ -41,23 +43,29 @@ read the mailbox → open the letters → hand the plaintext to pi → mail the 
 ```
 
 Everything else it does — the tabs, the pairing code, the counters — serves that
-loop or tells you why it stopped.
+loop or tells you why it stopped. The page speaks English and Chinese; the switch
+is in the top right corner and only affects the page, not the letters.
 
 ### What you decide on it
 
 - **Setup** — the mailbox (POP3 or IMAP in, SMTP out) and the letter template that
-  carries the armor. Includes "Send a test letter to myself", so the mailbox can
-  be proven before an app is involved.
+  carries the armor. The credential it asks for is the provider's **authorization
+  code**, not the password you log in with, and it is one code for both
+  directions: POP3/SMTP have to be switched on in the mailbox first. The letter
+  card shows the exact letter that will arrive.
 - **Session** — which `pi` session the phone talks to: session id, working
   directory, model, timeout, reply limit, tools. **One way in.** The phone cannot
-  change any of it.
+  change any of it. The working directory defaults to `~/.clutcha-bridge`,
+  created on first start, so a stray command from the agent cannot edit the
+  program that is running it.
 - **Pairing** — a QR code that hands the phone its own key pair. The bridge mints
   one per device and never holds the phone's private key.
-- **Status** — polls, replies, errors, latency. Monitoring, nothing else.
+- **Status** — polls, replies, errors, uptime. Monitoring, nothing else.
 
 The bridge has no opinion about the model: `--model` is passed to `pi` exactly as
 typed, local or cloud alike, and empty means "whatever `pi` defaults to". A typo
-surfaces as the model server's own error, verbatim.
+surfaces as the model server's own error, verbatim. Thinking is the same idea:
+`off`, or nothing at all so the `pi` session's own configuration decides.
 
 ### What it refuses to do
 
@@ -107,13 +115,11 @@ of failing. Ports fall back from 8787 to 8796 if something else holds it.
 
 Then:
 
-1. **Setup** — mailbox address and password, then "Send a test letter to myself".
+1. **Setup** — address, authorization code, "Test connection". Scan the pairing
+   code with the app when the mailbox is proven.
 2. **Session** — session id, working directory, model. "Test session" runs one
    round trip before you trust it.
-3. **Setup → Pairing** — scan the QR code from the app's Remote tab.
-
-Details, and the reasoning behind each field, are in
-[`bridge/README.md`](bridge/README.md).
+3. Pair the phone, and write to it. The first letter back is the real test.
 
 ## What the mailbox sees
 
@@ -131,7 +137,7 @@ envelope is self-describing (`VM1`), the armor labels are frozen (`VM MESSAGE`,
 `vmessager/v1/{salt,conv,tag}`.
 
 What the provider still sees is metadata: a sender, a recipient, a timestamp, a
-size. That is not nothing, and the README says so rather than pretending
+size. That is not nothing, and this page says so rather than pretending
 otherwise.
 
 ## Control mail
@@ -152,10 +158,10 @@ Anything without the prefix is a message to the agent.
 
 ## Status
 
-The bridge works and is what this repository ships. The app is the comfortable way
-to use it; without the app the bridge is still a complete implementation of the
-protocol — its Setup page can send itself test letters to prove the mailbox works,
-so the two halves can be brought up one at a time.
+The bridge works and is what this repository ships. The app is the comfortable
+way to use it; without the app the bridge is still a complete implementation of
+the protocol — its Setup page can prove the mailbox on its own, so the two halves
+can be brought up one at a time.
 
 ## License
 
