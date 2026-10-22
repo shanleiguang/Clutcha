@@ -1,0 +1,115 @@
+{
+  "version": 4,
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8787
+  },
+  "me": {
+    "name": "Me",
+    "mail": {
+      "address": "you@example.com",
+      "inbox": {
+        "protocol": "pop3",
+        "host": "pop.example.com",
+        "port": 995,
+        "useSSL": true,
+        "starttls": false,
+        "username": "you@example.com",
+        "token": ""
+      },
+      "smtp": {
+        "host": "smtp.example.com",
+        "port": 465,
+        "useSSL": true,
+        "starttls": false,
+        "username": "you@example.com",
+        "token": ""
+      }
+    },
+    "identity": {
+      "privateKey": "",
+      "publicKey": ""
+    }
+  },
+  "monkey": {
+    "name": "My-Computer",
+    "identity": {
+      "privateKey": "",
+      "publicKey": ""
+    },
+    "mail": {
+      "mode": "shared",
+      "own": {}
+    },
+    "session": {
+      "harness": "pi",
+      "mode": "simple",
+      "sessionId": "clutcha-main",
+      "cwd": "~/.clutcha-bridge",
+      "model": "",
+      "thinking": "off",
+      "tools": "on",
+      "systemPrompt": "",
+      "timeoutSeconds": 300,
+      "fallback": "(No answer — the agent did not finish in time. Check the bridge's Status tab.)",
+      "replyMaxChars": 6000,
+      "command": ""
+    }
+  },
+  "mail": {
+    "lang": "auto",
+    "vary": true,
+    "subject": {
+      "zh": "Clutcha 消息",
+      "en": "Clutcha message"
+    },
+    "greeting": {
+      "zh": [
+        "你好，",
+        "嗨，",
+        "在吗，",
+        "打扰一下，",
+        "见字如面，"
+      ],
+      "en": [
+        "Hi,",
+        "Hello,",
+        "Hey,",
+        "Quick note —"
+      ]
+    },
+    "body": {
+      "zh": "这是一条通过 Clutcha 发送的消息，请在 App 中查看。\n发送时间：{time}\n\n{armored}",
+      "en": "A message sent through Clutcha. Open the app to read it.\nSent: {time}\n\n{armored}"
+    },
+    "closing": {
+      "zh": [
+        "辛苦了。",
+        "回头聊。",
+        "方便时看看。",
+        "谢谢。",
+        ""
+      ],
+      "en": [
+        "Thanks.",
+        "Talk soon.",
+        "No rush.",
+        ""
+      ]
+    }
+  },
+  "cleanup": {
+    "enabled": false,
+    "hour": 3
+  },
+  "poll": {
+    "enabled": true,
+    "intervalSeconds": 180,
+    "maxPerCycle": 5,
+    "maxScan": 20
+  },
+  "ui": {
+    "theme": "auto",
+    "lang": "en"
+  }
+}

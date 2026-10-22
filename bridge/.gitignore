@@ -1,0 +1,18 @@
+# Secrets and runtime state — never commit these.
+config.json
+config.json.*
+.pop3_cursor.json
+metrics.jsonl
+metrics.jsonl.*
+.cleanup.json
+.cleanup_log.jsonl
+replies/
+
+# pi / zero agent state, not part of this project
+.pi/
+
+# Local environment
+.venv/
+__pycache__/
+*.pyc
+.DS_Store

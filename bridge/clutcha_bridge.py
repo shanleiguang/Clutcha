@@ -59,6 +59,20 @@ def _is_bridge(port: int) -> bool:
         return False
 
 
+def ensure_agent_folder() -> None:
+    """The agent runs in its own folder; create it rather than fail on first run.
+
+    `config` is imported inside main(), so this asks for it here too.
+    """
+    from clutchabridge import config
+
+    folder = config.default_cwd()
+    try:
+        os.makedirs(folder, exist_ok=True)
+    except Exception as error:
+        print(f"could not create {folder}: {error}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Clutcha Bridge")
     parser.add_argument("--port", type=int, default=0, help="override the port from config.json")
@@ -87,6 +101,7 @@ def main() -> None:
 
     crypto.ensure_identities()
     crypto.refresh_conversation_key()
+    ensure_agent_folder()
 
     if not config.is_configured():
         STATE.add("service", "bridge starting (mailbox not configured yet — see the Setup tab)", "warn")
