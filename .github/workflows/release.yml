@@ -1,0 +1,34 @@
+name: release
+
+# A tag is the whole trigger: `git tag -a v1.0.1 -m ... && git push --tags`
+# publishes a zip of bridge/ as a GitHub Release. No token on anyone's laptop,
+# no bundle to drag into a browser.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package the bridge
+        run: |
+          cd bridge
+          # --exclude keeps a stray local cache or editor file out of the zip;
+          # the repository itself never contains them.
+          zip -r "../clutcha-bridge-${GITHUB_REF_NAME}.zip" . \
+            -x "*/__pycache__/*" "*.pyc" ".DS_Store" "config.json"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "clutcha-bridge-${GITHUB_REF_NAME}.zip" \
+            --title "Clutcha Bridge $GITHUB_REF_NAME" \
+            --notes-file .github/release-notes.md \
+            --generate-notes
